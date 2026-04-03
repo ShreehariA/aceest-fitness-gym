@@ -12,15 +12,16 @@
 4. [Prerequisites](#prerequisites)
 5. [Complete Setup Guide (Step-by-Step)](#complete-setup-guide-step-by-step)
 6. [Running the Application](#running-the-application)
-7. [Running Tests &amp; Linting](#running-tests--linting)
-8. [Docker – Build, Run &amp; Test](#docker--build-run--test)
-9. [Git – Version Control Workflow](#git--version-control-workflow)
-10. [CI/CD – GitHub Actions](#cicd--github-actions)
-11. [CI/CD – Jenkins Integration](#cicd--jenkins-integration)
-12. [API Endpoints &amp; Usage Examples](#api-endpoints--usage-examples)
-13. [Important Commands Cheat Sheet](#important-commands-cheat-sheet)
-14. [Troubleshooting](#troubleshooting)
-15. [Version History](#version-history)
+7. [Interactive UI Dashboard](#interactive-ui-dashboard)
+8. [Running Tests &amp; Linting](#running-tests--linting)
+9. [Docker – Build, Run &amp; Test](#docker--build-run--test)
+10. [Git – Version Control Workflow](#git--version-control-workflow)
+11. [CI/CD – GitHub Actions](#cicd--github-actions)
+12. [CI/CD – Jenkins Integration](#cicd--jenkins-integration)
+13. [API Endpoints &amp; Usage Examples](#api-endpoints--usage-examples)
+14. [Important Commands Cheat Sheet](#important-commands-cheat-sheet)
+15. [Troubleshooting](#troubleshooting)
+16. [Version History](#version-history)
 
 ---
 
@@ -62,6 +63,8 @@ aceest-project/
 ├── .github/
 │   └── workflows/
 │       └── main.yml           # GitHub Actions CI/CD workflow
+├── templates/
+│   └── index.html             # Interactive UI dashboard (served at /ui)
 ├── .gitignore                 # Files excluded from version control
 ├── README.md                  # This file
 └── Aceestver-*.py             # Historical version snapshots (1.0 → 3.2.4)
@@ -180,6 +183,41 @@ Expected response:
 ### Stop the App
 
 Press `Ctrl + C` in the terminal where the app is running.
+
+---
+
+## Interactive UI Dashboard
+
+The project includes a **built-in interactive web dashboard** that lets you explore and test every API endpoint directly from your browser — no curl or Postman needed.
+
+### Access the Dashboard
+
+With the Flask app running, open:
+
+```
+http://127.0.0.1:5001/ui
+```
+
+### Dashboard Features
+
+| Section              | What You Can Do                                                        |
+| -------------------- | ---------------------------------------------------------------------- |
+| **🏠 Home**          | View live stats — member count, classes, workouts, app version         |
+| **👥 Members**       | Register, edit (update program), and delete members via forms          |
+| **📋 Classes**       | Browse all fitness classes with trainer and schedule info               |
+| **🏃 Workouts**      | Log new workouts for members with type, duration, and notes            |
+| **⚖️ BMI Calculator** | Enter weight & height, get colour-coded BMI result and category        |
+| **🔥 Calorie Estimator** | Full calorie calculator with gender and activity level             |
+| **📡 Raw API Tester** | Send any HTTP method to any endpoint — like a built-in mini-Postman   |
+
+> The Raw API Tester tab includes **quick-access buttons** for all common endpoints, making it easy to experiment with the API and see raw JSON responses.
+
+### Technical Details
+
+- The dashboard is a **single HTML file** with inline CSS and JavaScript — no build step or extra dependencies required.
+- Served by Flask's `render_template` via the `/ui` route.
+- Communicates with all existing API endpoints using `fetch()` from the browser.
+- Fully responsive dark-themed design.
 
 ---
 
@@ -459,6 +497,7 @@ docker volume rm jenkins_home
 | Method     | Endpoint          | Description                        |
 | ---------- | ----------------- | ---------------------------------- |
 | `GET`    | `/`             | Welcome page & available endpoints |
+| `GET`    | `/ui`           | Interactive UI dashboard           |
 | `GET`    | `/about`        | Application information            |
 | `GET`    | `/members`      | List all members                   |
 | `POST`   | `/members`      | Register a new member              |

@@ -8,7 +8,7 @@ Version : 3.2.4
 """
 from __future__ import annotations
 
-from flask import Flask, jsonify, request, abort
+from flask import Flask, jsonify, request, abort, render_template
 from datetime import date
 
 app = Flask(__name__)
@@ -77,6 +77,13 @@ def calculate_calories(weight_kg: float, height_cm: float, age: int,
 
 
 # ========================== ROUTES =========================================
+
+# --- UI Dashboard ----------------------------------------------------------
+@app.route("/ui")
+def ui():
+    """Serve the interactive frontend dashboard."""
+    return render_template("index.html")
+
 
 # --- Home ------------------------------------------------------------------
 @app.route("/")
