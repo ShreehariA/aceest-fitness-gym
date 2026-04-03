@@ -21,8 +21,9 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application source
-COPY . .
+# Copy application source & UI templates
+COPY app.py test_app.py ./
+COPY templates/ templates/
 
 # Switch to non-root user
 USER aceest

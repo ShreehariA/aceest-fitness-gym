@@ -280,12 +280,18 @@ docker run -d -p 5002:5000 --name aceest aceest-fitness-gym:latest
 # Check container status
 docker ps
 
-# Test the endpoint
+# Test the API
 curl http://127.0.0.1:5002/
+
+# Test the UI dashboard
+curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:5002/ui
+# Should return 200
 
 # Check container logs
 docker logs aceest
 ```
+
+> **UI Dashboard in Docker:** Open http://127.0.0.1:5002/ui in your browser to access the interactive dashboard from the container.
 
 ### Run Tests Inside the Container
 
@@ -579,6 +585,7 @@ uv run flake8 app.py test_app.py           # Run linter
 # ──────────── DOCKER ────────────
 docker build -t aceest-fitness-gym .       # Build image
 docker run -d -p 5002:5000 --name aceest aceest-fitness-gym:latest  # Run
+curl http://127.0.0.1:5002/ui              # Verify UI dashboard
 docker exec aceest pytest test_app.py -v   # Test inside container
 docker logs aceest                         # View logs
 docker stop aceest && docker rm aceest     # Cleanup
