@@ -333,9 +333,11 @@ chore: update dependencies in requirements.txt
 
 The workflow file is at `.github/workflows/main.yml`.
 
+> 🔗 **Live pipeline status:** Go to the [**Actions tab**](https://github.com/ShreehariA/aceest-fitness-gym/actions) on the GitHub repo to view all pipeline runs and their results.
+
 ### Trigger
 
-Every **push** or **pull_request** to the `main` branch.
+Every **push** or **pull_request** to the `main` branch automatically triggers the pipeline.
 
 ### Pipeline Stages
 
@@ -351,12 +353,6 @@ Every **push** or **pull_request** to the `main` branch.
 2. **Test** – Executes the full `pytest` suite; the pipeline fails if any test fails.  
 3. **Docker** – Builds the Docker image and performs a smoke test (starts the container and verifies a `200 OK` response from `/`).
 
-### How to Check Pipeline Status
-
-1. Go to **https://github.com/ShreehariA/aceest-fitness-gym/actions**  
-2. Click the latest workflow run  
-3. Green ✅ = all stages passed | Red ❌ = something failed (click to see logs)
-
 ### Re-run a Failed Pipeline
 
 - Push a fix: `git push` (triggers automatically)
@@ -368,49 +364,89 @@ Every **push** or **pull_request** to the `main` branch.
 
 ### Overview
 
-A `Jenkinsfile` (declarative pipeline) is included for Jenkins-based builds. Unlike GitHub Actions, **Jenkins is self-hosted** — you run it on your own machine.
+A `Jenkinsfile` (declarative pipeline) is included for Jenkins-based builds. Unlike GitHub Actions, **Jenkins is self-hosted** — you run it on your own machine via Docker.
+
+### Jenkins Build Result
+
+The screenshot below shows a successful Jenkins pipeline run (Build #3) for this project:
+
+![Jenkins Build Success](docs/jenkins-build-success.png)
+
+All stages completed successfully:
+
+| Stage | Time | Status |
+|-------|------|--------|
+| **Checkout SCM** | 0.48s | ✅ Passed |
+| **Checkout** | 0.34s | ✅ Passed |
+| **Setup Python Environment** | 3s | ✅ Passed |
+| **Lint** | 0.28s | ✅ Passed |
+| **Test** | 0.28s | ✅ Passed |
+| **Docker Build** | 0.31s | ⏭️ Skipped (Docker not available inside Jenkins container) |
+| **Post Actions** | 31ms | ✅ Workspace cleaned |
+
+> **Note:** The Docker Build stage is conditionally skipped when Docker is not installed inside the Jenkins container. Docker image building is handled by **GitHub Actions** and verified locally.
 
 ### Pipeline Stages
 
 | Stage | Description |
 |-------|-------------|
 | **Checkout** | Pulls the latest code from the connected GitHub repo |
-| **Setup Python Environment** | Creates a virtual environment and installs dependencies |
-| **Lint** | Runs `flake8` static analysis |
-| **Test** | Runs `pytest` suite |
-| **Docker Build** | Builds the Docker image |
+| **Setup Python Environment** | Creates a Python venv and installs all dependencies via pip |
+| **Lint** | Runs `flake8` static analysis for syntax errors |
+| **Test** | Runs the full `pytest` suite (42 tests) |
+| **Docker Build** | Builds the Docker image (skipped if Docker is unavailable) |
 
-### Jenkins Setup Steps (Using Docker)
+### What We Did – Step by Step
+
+#### 1. Started Jenkins via Docker
 
 ```bash
-# 1. Start Jenkins as a Docker container
 docker run -d -p 8080:8080 -p 50000:50000 \
   -v jenkins_home:/var/jenkins_home \
   --name jenkins jenkins/jenkins:lts
+```
 
-# 2. Get the initial admin password
+#### 2. Retrieved the initial admin password
+
+```bash
 docker exec jenkins cat /var/jenkins_home/secrets/initialAdminPassword
 ```
 
-3. Open **http://localhost:8080** in your browser  
-4. Paste the admin password → install **suggested plugins**  
-5. Create an admin user  
-6. Install additional plugins: **Pipeline**, **Git**, **Docker Pipeline**  
-   _(Manage Jenkins → Plugins → Available)_
+#### 3. Configured Jenkins (in browser at http://localhost:8080)
 
-### Connect Jenkins to Your GitHub Repo
+1. Pasted the admin password  
+2. Clicked **Install suggested plugins** (waited for installation)  
+3. Created an admin user  
+4. Accepted the default Jenkins URL  
 
-1. Dashboard → **New Item** → name it `aceest-fitness-gym` → select **Pipeline** → OK  
-2. Under **Pipeline → Definition**, select **Pipeline script from SCM**  
+#### 4. Installed Python inside the Jenkins container
+
+The Jenkins Docker image doesn't come with Python pre-installed, so we installed it:
+
+```bash
+docker exec -u root jenkins bash -c \
+  "apt-get update && apt-get install -y python3 python3-pip python3-venv"
+```
+
+#### 5. Created the Pipeline Job
+
+1. Dashboard → **New Item** → named it `aceest-fitness-gym` → selected **Pipeline** → OK  
+2. Under **Pipeline → Definition**, selected **Pipeline script from SCM**  
 3. Set **SCM** to **Git**  
-4. Enter repo URL: `https://github.com/ShreehariA/aceest-fitness-gym.git`  
+4. Entered repo URL: `https://github.com/ShreehariA/aceest-fitness-gym.git`  
 5. Set **Branch** to `*/main`  
-6. Click **Save** → **Build Now**  
+6. Clicked **Save** → **Build Now**  
 
-### Stop Jenkins
+#### 6. Build Result
+
+The pipeline ran successfully — Checkout, Setup, Lint, and Test all passed. The Docker Build stage was gracefully skipped (Docker CLI isn't available inside the Jenkins container). Total build time: **~5.8 seconds**.
+
+### Stop & Clean Up Jenkins
 
 ```bash
 docker stop jenkins && docker rm jenkins
+# To also remove the persistent volume:
+docker volume rm jenkins_home
 ```
 
 ---
